@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Persona F&B-Tourism Preference Prediction Dashboard</title>
+<style>
+  :root{
+    --bg: #f5f3ee;
+    --panel: #ffffff;
+    --ink: #1f2430;
+    --ink-soft: #5b5f6b;
+    --line: #e3ded2;
+    --navy: #16324f;
+    --navy-soft: #a9bdd0;
+    --gold: #b8863f;
+    --gold-soft: #f1e3c8;
+    --jade: #3e7c59;
+    --jade-soft: #dceadf;
+    --coral: #b3563f;
+    --coral-soft: #f3ded7;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    height: 100vh; overflow: hidden;}
+  .app{width:1360px; max-width: 100%; margin:0 auto; padding:16px 24px 12px;
+    height: 100%; display: flex; flex-direction: column;}
+
+  /* ---- Header ---- */
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:2px solid var(--navy); padding-bottom:12px; margin-bottom:14px; flex-shrink: 0;}
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand-mark{width:42px;height:42px;border-radius:9px;background:var(--navy);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    font-family: Georgia, "Times New Roman", serif; font-weight:700; font-size:18px;}
+  .brand-text h1{font-family: Georgia, "Times New Roman", serif; font-weight:700;
+    font-size:20px; margin:0 0 2px; color:var(--navy); letter-spacing:.2px;}
+  .brand-text p{margin:0;font-size:12.5px;color:var(--ink-soft);}
+  .topbar-right{text-align:right;font-size:11.5px;color:var(--ink-soft); line-height:1.55;}
+  .badge{display:inline-block; background:var(--jade-soft); color:var(--jade);
+    font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; margin-left:6px;
+    letter-spacing:.3px;}
+
+  /* ---- layout grid ---- */
+  .grid{display:grid; grid-template-columns: 280px 1fr 300px; gap:16px; flex: 1; min-height: 0;}
+
+  /* ---- Sidebar: filters ---- */
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+    display: flex; flex-direction: column;}
+  .panel h2{font-size:12.5px; text-transform:uppercase; letter-spacing:.9px; color:var(--ink-soft);
+    margin:0 0 12px; font-weight:700;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:5px;}
+  .field .input{border:1px solid var(--line); border-radius:8px; padding:7px 11px; font-size:12.5px;
+    background:#fbfaf7; color:var(--ink);}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{border:1px solid var(--line); border-radius:20px; padding:4px 10px; font-size:11.5px;
+    background:#fbfaf7; color:var(--ink-soft);}
+  .chip.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .persona-list{margin-top:6px; display:flex; flex-direction:column; gap:8px; overflow-y: auto;}
+  .persona-item{border:1px solid var(--line); border-radius:9px; padding:8px 10px; font-size:12px;
+    background:#fbfaf7; cursor:pointer;}
+  .persona-item.selected{border-color:var(--navy); background:var(--navy-soft); box-shadow: inset 0 0 0 1px var(--navy);}
+  .persona-item .pid{color:var(--ink-soft); font-family: "Courier New", monospace; font-size:10.5px;}
+  .persona-item .pname{font-weight:700; margin:2px 0 1px;}
+  .persona-item .ptag{color:var(--ink-soft); font-size:11px;}
+
+  /* ---- Main persona card ---- */
+  .persona-card{margin-bottom:14px; flex-shrink: 0;}
+  .persona-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
+  .persona-head h2{font-family: Georgia, "Times New Roman", serif; font-size:18px; margin:0 0 4px; color:var(--navy);}
+  .persona-head .sub{font-size:12px;color:var(--ink-soft);}
+  .demo-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .demo-chip{font-size:10.5px; padding:4px 9px; border-radius:20px; background:var(--gold-soft); color:var(--gold);
+    font-weight:700;}
+  .persona-text{font-size:12.5px; line-height:1.5; color:var(--ink-soft); background:#fbfaf7;
+    border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-top:8px;}
+
+  .section-title{font-size:12.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--ink-soft);
+    font-weight:700; margin:0 0 10px;}
+
+  /* ---- confidence bars ---- */
+  .center-col { display: flex; flex-direction: column; min-height: 0; }
+  .conf-panel { flex: 1; overflow-y: auto; margin-bottom: 14px; }
+  .group-label{font-size:11px; font-weight:700; color:var(--ink-soft); margin:10px 0 6px;
+    display:flex; align-items:center; gap:6px;}
+  .group-label:first-of-type { margin-top: 0; }
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dot.fnb{background:var(--jade);} .dot.tour{background:var(--navy);}
+
+  .bar-row{display:grid; grid-template-columns: 140px 1fr 50px; align-items:center; gap:8px; margin-bottom:8px;}
+  .bar-label{font-size:12px; font-weight:600;}
+  .bar-track{height:12px; background:#eeece5; border-radius:6px; overflow:hidden; border:1px solid var(--line);}
+  .bar-fill{height:100%; border-radius:6px 0 0 6px;}
+  .bar-fill.fnb{background:linear-gradient(90deg,#5a9c78,var(--jade));}
+  .bar-fill.tour{background:linear-gradient(90deg,#3f6389,var(--navy));}
+  .bar-pct{font-family:"Courier New",monospace; font-size:12px; text-align:right; font-weight:700;}
+
+  /* ---- recommendation cards ---- */
+  .reco-panel { flex-shrink: 0; }
+  .reco-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-top:8px;}
+  .reco-card{border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fbfaf7;}
+  .reco-card .tag{display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px;
+    margin-bottom:6px;}
+  .tag.fnb{background:var(--jade-soft); color:var(--jade);}
+  .tag.tour{background:var(--navy-soft); color:var(--navy);}
+  .reco-card h3{margin:0 0 6px; font-size:13px; font-family: Georgia, "Times New Roman", serif; color:var(--navy);}
+  .reco-card p{margin:0; font-size:11px; color:var(--ink-soft); line-height:1.45;}
+  .reco-conf{margin-top:8px; font-size:10px; color:var(--ink-soft);}
+  .reco-conf b{color:var(--ink);}
+
+  /* ---- right column: lookalike + model info ---- */
+  .right-col { display: flex; flex-direction: column; }
+  .lookalike-item{display:flex; justify-content:space-between; align-items:center; padding:7px 0;
+    border-bottom:1px dashed var(--line); font-size:12px;}
+  .lookalike-item:last-child{border-bottom:none;}
+  .lookalike-item .lname{font-weight:600;}
+  .lookalike-item .lsim{font-family:"Courier New",monospace; color:var(--jade); font-weight:700; font-size:11px;}
+
+  .model-info{font-size:11px; color:var(--ink-soft); line-height:1.6;}
+  .model-info b{color:var(--ink);}
+  .kv{display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--line); font-size:11.5px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--ink-soft);}
+  .kv .v{font-weight:700; font-family:"Courier New",monospace;}
+
+  .footer-note{margin-top:14px; padding-top:10px; border-top:1px solid var(--line);
+    font-size:10.5px; color:var(--ink-soft); text-align:center; flex-shrink: 0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">HC</div>
+      <div class="brand-text">
+        <h1>HCMC Persona Intelligence — F&amp;B · Tourism</h1>
+        <p>Preference prediction &amp; potential customer segment recommendation dashboard</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      Data source: Nemotron-Personas-Vietnam (HCMC, N=10,000)<span class="badge">Illustrative Mockup</span><br>
+      Model: SBERT-ML + Logistic Regression · trained on V-C labels (Gemini, κ=0.658)
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: filters + persona list -->
+    <div class="panel">
+      <h2>Search Persona</h2>
+      <div class="field">
+        <label>Keyword / Persona ID</label>
+        <div class="input">hcm_07821 — "food vlogger"</div>
+      </div>
+      <div class="field">
+        <label>Filter by Age Group</label>
+        <div class="chips">
+          <span class="chip">18–24</span>
+          <span class="chip active">25–34</span>
+          <span class="chip">35–44</span>
+          <span class="chip">45+</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Filter by Predicted Segment</label>
+        <div class="chips">
+          <span class="chip active">fnb_street</span>
+          <span class="chip">fnb_fine</span>
+          <span class="chip">tour_food</span>
+        </div>
+      </div>
+
+      <h2 style="margin-top:16px;">Results (4/10,000)</h2>
+      <div class="persona-list">
+        <div class="persona-item selected">
+          <div class="pid">#HCM-07821</div>
+          <div class="pname">Female, 27 y/o — Content creator</div>
+          <div class="ptag">fnb_street 0.88 · tour_food 0.71</div>
+        </div>
+        <div class="persona-item">
+          <div class="pid">#HCM-14903</div>
+          <div class="pname">Male, 31 y/o — Software Engineer</div>
+          <div class="ptag">fnb_cafe 0.79 · tour_cultural 0.52</div>
+        </div>
+        <div class="persona-item">
+          <div class="pid">#HCM-22318</div>
+          <div class="pname">Female, 24 y/o — Postgrad Student</div>
+          <div class="ptag">fnb_healthy 0.74 · tour_adventure 0.49</div>
+        </div>
+        <div class="persona-item">
+          <div class="pid">#HCM-30456</div>
+          <div class="pname">Male, 38 y/o — Business Owner</div>
+          <div class="ptag">fnb_fine 0.81 · tour_resort 0.68</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: selected persona + confidence bars + recommendations -->
+    <div class="center-col">
+      <div class="panel persona-card">
+        <div class="persona-head">
+          <div>
+            <h2>#HCM-07821 &nbsp;·&nbsp; Female, 27 y/o</h2>
+            <div class="sub">Food Content Creator · Binh Thanh Dist, HCMC</div>
+          </div>
+          <div class="demo-chips">
+            <span class="demo-chip">Single</span>
+            <span class="demo-chip">Bachelor</span>
+            <span class="demo-chip">Freelance</span>
+          </div>
+        </div>
+        <div class="persona-text">
+          "Passionate about exploring street food stalls and street food across the city, frequently shooting video
+          reviews for personal channel. Prefers authentic local dining experiences over luxury restaurants,
+          often planning short trips to discover regional specialties..." <i>(excerpt from merged_text, shortened)</i>
+        </div>
+      </div>
+
+      <div class="panel conf-panel">
+        <div class="section-title">Prediction confidence by segment (9 labels)</div>
+
+        <div class="group-label"><span class="dot fnb"></span> Food &amp; Beverage (F&amp;B)</div>
+        <div class="bar-row"><div class="bar-label">fnb_street</div>
+          <div class="bar-track"><div class="bar-fill fnb" style="width:88%"></div></div><div class="bar-pct">88%</div></div>
+        <div class="bar-row"><div class="bar-label">fnb_cafe</div>
+          <div class="bar-track"><div class="bar-fill fnb" style="width:41%"></div></div><div class="bar-pct">41%</div></div>
+        <div class="bar-row"><div class="bar-label">fnb_healthy</div>
+          <div class="bar-track"><div class="bar-fill fnb" style="width:23%"></div></div><div class="bar-pct">23%</div></div>
+        <div class="bar-row"><div class="bar-label">fnb_fine</div>
+          <div class="bar-track"><div class="bar-fill fnb" style="width:9%"></div></div><div class="bar-pct">9%</div></div>
+
+        <div class="group-label"><span class="dot tour"></span> Tourism</div>
+        <div class="bar-row"><div class="bar-label">tour_food</div>
+          <div class="bar-track"><div class="bar-fill tour" style="width:71%"></div></div><div class="bar-pct">71%</div></div>
+        <div class="bar-row"><div class="bar-label">tour_festival</div>
+          <div class="bar-track"><div class="bar-fill tour" style="width:34%"></div></div><div class="bar-pct">34%</div></div>
+        <div class="bar-row"><div class="bar-label">tour_cultural</div>
+          <div class="bar-track"><div class="bar-fill tour" style="width:28%"></div></div><div class="bar-pct">28%</div></div>
+        <div class="bar-row"><div class="bar-label">tour_adventure</div>
+          <div class="bar-track"><div class="bar-fill tour" style="width:14%"></div></div><div class="bar-pct">14%</div></div>
+        <div class="bar-row"><div class="bar-label">tour_resort</div>
+          <div class="bar-track"><div class="bar-fill tour" style="width:6%"></div></div><div class="bar-pct">6%</div></div>
+      </div>
+
+      <div class="panel reco-panel">
+        <div class="section-title">Recommended actions (labels > 0.30)</div>
+        <div class="reco-grid">
+          <div class="reco-card">
+            <span class="tag fnb">fnb_street · 88%</span>
+            <h3>Street food-tour voucher</h3>
+            <p>Invite to experience a food-tour package of 5 partner stalls, prioritizing weekend evenings.</p>
+            <div class="reco-conf">Confidence: <b>High</b> — clearly exceeds threshold</div>
+          </div>
+          <div class="reco-card">
+            <span class="tag tour">tour_food · 71%</span>
+            <h3>Inter-provincial 2D1N food tour</h3>
+            <p>Recommend a tour discovering regional specialties near HCMC for personal channel content.</p>
+            <div class="reco-conf">Confidence: <b>High</b> — consistent with fnb_street</div>
+          </div>
+          <div class="reco-card">
+            <span class="tag fnb">fnb_cafe · 41%</span>
+            <h3>Workspace + coffee offer</h3>
+            <p>Secondary suggestion: working combo package at a partner cafe for weekday mornings.</p>
+            <div class="reco-conf">Confidence: <b>Medium</b> — monitor further behavior</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: lookalike + model card -->
+    <div class="right-col">
+      <div class="panel" style="margin-bottom:14px; flex-shrink: 0;">
+        <h2>Lookalike Personas</h2>
+        <div class="lookalike-item"><span class="lname">#HCM-11204</span><span class="lsim">cos 0.912</span></div>
+        <div class="lookalike-item"><span class="lname">#HCM-29871</span><span class="lsim">cos 0.905</span></div>
+        <div class="lookalike-item"><span class="lname">#HCM-03567</span><span class="lsim">cos 0.897</span></div>
+        <div class="lookalike-item"><span class="lname">#HCM-18820</span><span class="lsim">cos 0.889</span></div>
+        <div class="lookalike-item"><span class="lname">#HCM-25190</span><span class="lsim">cos 0.881</span></div>
+      </div>
+
+      <div class="panel" style="flex: 1; min-height: 0; overflow-y: auto;">
+        <h2>Serving Model Information</h2>
+        <div class="kv"><span class="k">Training label source</span><span class="v">V-C (Gemini)</span></div>
+        <div class="kv"><span class="k">Kappa w/ human labels</span><span class="v">0.658</span></div>
+        <div class="kv"><span class="k">Features</span><span class="v">SBERT-ML</span></div>
+        <div class="kv"><span class="k">Classifier</span><span class="v">LogReg</span></div>
+        <div class="kv"><span class="k">Micro-F1 (holdout)</span><span class="v">0.481</span></div>
+        <div class="kv"><span class="k">Prediction latency</span><span class="v">~40 ms</span></div>
+        <p class="model-info" style="margin-top:12px;">
+          Default "recommendation threshold" = 0.30, adjustable based on campaign goals (coverage vs. precision).
+          Scores are calibrated probabilities, not binary labels.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    Illustrative simulation interface for research presentation purposes — not an operational commercial product.<br>
+    Displayed persona data is synthetic and does not represent real individuals.
+  </div>
+
+</div>
+</body>
+</html>

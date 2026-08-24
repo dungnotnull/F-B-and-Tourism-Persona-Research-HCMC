@@ -1,0 +1,21 @@
+# Environments
+.env
+.env.*
+.env.local
+
+# Word documents (Research papers)
+*.docx
+*.doc
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# OS generated files
+.DS_Store
+Thumbs.db
